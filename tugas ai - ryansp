@@ -1,0 +1,85 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+
+
+# Cek nilai yang hilang
+print(data.isnull().sum())
+
+# Isi nilai yang hilang jika diperlukan (contoh dummy di bawah ini)
+data.fillna(method='ffill', inplace=True)
+
+# Encode kolom kategorikal jika ada
+for col in data.select_dtypes(include='object').columns:
+    data[col] = pd.factorize(data[col])[0]
+
+# Tentukan kolom target, misal 'target' diganti dengan nama target sebenarnya
+# Hapus kolom target dari fitur dan pastikan variabel targetnya ada
+try:
+    X = data.drop(columns=['target'])  # Ganti 'target' dengan kolom target
+    y = data['target']
+except KeyError:
+    print("Pastikan nama kolom target sesuai.")
+    # Cek nama kolom yang ada di dataset
+    print("Kolom yang tersedia:", data.columns)
+
+
+# Cek tipe data dari setiap kolom dan jumlah nilai yang hilang
+print(data.info())
+print(data.isnull().sum())
+
+# Menampilkan beberapa statistik deskriptif
+print(data.describe())
+
+# Visualisasi distribusi variabel target (misalnya, jika ada kolom bernama 'Rating')
+if 'Rating' in data.columns:
+    sns.histplot(data['Rating'], kde=True)
+    plt.title('Distribusi Rating')
+    plt.show()
+
+
+# Tentukan nama kolom target yang akan diprediksi
+target_column = 'userName'  # Ganti dengan nama kolom target yang sesuai
+
+# Pisahkan fitur (X) dan target (y)
+if target_column in data.columns:
+    X = data.drop(columns=[target_column])  # Fitur
+    y = data[target_column]  # Target
+else:
+    print(f"Kolom target '{target_column}' tidak ditemukan dalam data.")
+
+
+
+# Membagi data menjadi data latih dan data uji (80-20)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Cek tipe data target
+if y.dtypes == 'object' or len(y.unique()) < 10:  # Mengasumsikan klasifikasi jika data target kategorikal
+    # Langkah 3A: Model Klasifikasi
+    model = RandomForestClassifier(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    # Langkah 4A: Evaluasi untuk Klasifikasi
+    print("Akurasi:", accuracy_score(y_test, y_pred))
+    print("Laporan Klasifikasi:\n", classification_report(y_test, y_pred))
+    print("Matriks Kebingungan:\n", confusion_matrix(y_test, y_pred))
+
+else:
+    # Langkah 3B: Model Regresi
+    model = RandomForestRegressor(n_estimators=100, random_state=42)
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    # Langkah 4B: Evaluasi untuk Regresi
+    print("Mean Squared Error (MSE):", mean_squared_error(y_test, y_pred))
+    print("Mean Absolute Error (MAE):", mean_absolute_error(y_test, y_pred))
+    print("R2 Score:", r2_score(y_test, y_pred))
